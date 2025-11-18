@@ -4,7 +4,7 @@ import Container from './components/Container'
 function App() {
   const handlePlayClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     console.log('Play button clicked', event.target)
-    navigator.vibrate(200)
+    navigator.vibrate(20)
   }
 
   return (
