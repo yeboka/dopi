@@ -1,14 +1,18 @@
 import { cn } from '@/lib/utils'
 import type { FC, ReactNode } from 'react'
 
-const Container: FC<{ className?: string; children: ReactNode }> = ({ className, children }) => {
+const Container: FC<{ className?: string; children: ReactNode }> = ({ className, children, ...props }) => {
   const useAgent = typeof navigator !== 'undefined' ? navigator.userAgent : null
   const isMobile = useAgent ? /Mobi|Android|iPhone/i.test(useAgent) : false
-  console.log('isMobile:', isMobile)
-  console.log('userAgent:', useAgent)
+
   return (
     <div
-      className={cn('w-full h-screen mx-auto my-auto bg-red-400 p-5', !isMobile && 'max-w-[390px] max-h-[700px] rounded-2xl', className)}
+      className={cn(
+        'w-full h-screen mx-auto my-auto p-9 flex flex-col shadow-soft-xl relative overflow-clip bg-wheel bg-ipod-aluminium-cover bg-cover bg-center',
+        !isMobile && 'max-w-[420px] max-h-[839px] rounded-[46px]',
+        className
+      )}
+      {...props}
     >
       {children}
     </div>
