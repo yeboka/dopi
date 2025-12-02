@@ -1,5 +1,5 @@
 import { Directions } from '@/shared/constants'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 export type Point = { x: number; y: number }
 export const Controls = () => {
   const [isMouseDown, setIsMouseDown] = useState(false)
