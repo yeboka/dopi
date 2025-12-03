@@ -5,8 +5,8 @@ export const Controls = () => {
   const [isMouseDown, setIsMouseDown] = useState(false)
   const [direction, setDirection] = useState(Directions.FORWARD)
   const [a, setA] = useState<number>(0)
-  const [b, setB] = useState<Point>({ x: 0, y: 0 })
-  const [c, setC] = useState<Point>({ x: 0, y: 0 })
+  // const [b, setB] = useState<Point>({ x: 0, y: 0 })
+  // const [c, setC] = useState<Point>({ x: 0, y: 0 })
 
   // const handlePlayClick = (event: React.MouseEvent<HTMLButtonElement>) => {
   //   navigator.vibrate(20)
