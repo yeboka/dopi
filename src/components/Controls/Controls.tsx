@@ -1,6 +1,6 @@
-import { Directions } from '@/shared/constants'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { throttle } from 'lodash'
+import { useMenu } from '@/store/menuStore'
 
 export type Point = { x: number; y: number }
 const calculateTheta = (
@@ -13,8 +13,7 @@ const calculateTheta = (
 
 export const Controls = () => {
   const [isMouseDown, setIsMouseDown] = useState(false)
-  const [direction, setDirection] = useState(Directions.FORWARD)
-  const [count, setCount] = useState(0)
+  const { incrementFocusedIndex, decrementFocusedIndex } = useMenu()
   const startThetaRef = useRef<number | null>(null)
   const prevThetaRef = useRef(0)
 
@@ -42,7 +41,6 @@ export const Controls = () => {
 
       const thetaCurrent = calculateTheta(clientX, clientY, centerPoint)
 
-      // Store the starting angle and the previous angle on start
       startThetaRef.current = thetaCurrent
       prevThetaRef.current = thetaCurrent
     },
@@ -51,7 +49,6 @@ export const Controls = () => {
 
   const handleEnd = useCallback(() => {
     setIsMouseDown(false)
-    // Clear the starting angle when the interaction ends
     startThetaRef.current = null
   }, [])
 
@@ -59,7 +56,6 @@ export const Controls = () => {
     (
       event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
-      // Use startThetaRef to check if drag is properly initiated
       if (!isMouseDown || startThetaRef.current === null) return
 
       const clientX =
@@ -71,7 +67,6 @@ export const Controls = () => {
       const prevTheta = prevThetaRef.current
       let deltaTheta = thetaCurrent - prevTheta
 
-      // Normalize deltaTheta to the range (-π, π] to handle the angle wrap-around
       if (deltaTheta > Math.PI) {
         deltaTheta -= 2 * Math.PI
       } else if (deltaTheta < -Math.PI) {
@@ -79,22 +74,14 @@ export const Controls = () => {
       }
 
       if (Math.abs(deltaTheta) > 0.01) {
-        //avoiding jitter
         const isClockwise = deltaTheta > 0
-        setDirection(isClockwise ? Directions.FORWARD : Directions.BACKWARD)
         if (isClockwise) {
-          setCount(prev => prev + 1)
+          incrementFocusedIndex()
         } else {
-          setCount(prev => prev - 1)
+          decrementFocusedIndex()
         }
       }
-      // Update the previous angle for the next move event
       prevThetaRef.current = thetaCurrent
-      // The `startThetaRef.current` remains unchanged throughout the drag.
-
-      // Optional: If you wanted total angular displacement from start (not needed for direction/count):
-      // let totalDelta = thetaCurrent - startThetaRef.current;
-      // totalDelta = totalDelta > Math.PI ? totalDelta - 2 * Math.PI : totalDelta < -Math.PI ? totalDelta + 2 * Math.PI : totalDelta;
     },
     [isMouseDown, centerPoint]
   )
@@ -109,7 +96,6 @@ export const Controls = () => {
 
   return (
     <div className='flex-1 flex flex-col items-center'>
-      {direction ? 'backward' : 'forward'} {count}
       <div
         onMouseDown={handleStart}
         onMouseUp={handleEnd}
@@ -120,10 +106,7 @@ export const Controls = () => {
         className='w-[300px] aspect-square bg-white rounded-full mx-auto my-auto flex'
         id='clickwheel'
       >
-        <button
-          className='w-[125px] aspect-square border border-gray-500 rounded-full mx-auto my-auto'
-          // onClick={handlePlayClick}
-        ></button>
+        <button className='w-[125px] aspect-square border border-gray-500 rounded-full mx-auto my-auto'></button>
       </div>
     </div>
   )
