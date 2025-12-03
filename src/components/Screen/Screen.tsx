@@ -1,10 +1,10 @@
 export const Screen = () => {
   const items = [
     { id: 1, name: 'Cover FLow' },
-    { id: 1, name: 'Music' },
-    { id: 1, name: 'Settings' },
-    { id: 1, name: 'About' },
-    { id: 1, name: 'Sign in' }
+    { id: 2, name: 'Music' },
+    { id: 3, name: 'Settings' },
+    { id: 4, name: 'About' },
+    { id: 5, name: 'Sign in' }
   ]
 
   return (
@@ -13,7 +13,11 @@ export const Screen = () => {
         <div className='w-full h-full bg-gray-200 flex flex-col'>
           <ul>
             {items.map(item => (
-              <button key={item.id} className='p-4 border-b border-gray-300 focus:bg-blue-400 w-full text-left' data-menu-item>
+              <button
+                key={item.id}
+                className='p-4 border-b border-gray-300 focus:bg-blue-400 w-full text-left'
+                data-menu-item
+              >
                 {item.name}
               </button>
             ))}

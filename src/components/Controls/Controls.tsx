@@ -1,10 +1,10 @@
 import { Directions } from '@/shared/constants'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 export type Point = { x: number; y: number }
 export const Controls = () => {
   const [isMouseDown, setIsMouseDown] = useState(false)
   const [direction, setDirection] = useState(Directions.FORWARD)
-  const [a, setA] = useState<Point>({ x: 0, y: 0 })
+  const [a, setA] = useState<number>(0)
   const [b, setB] = useState<Point>({ x: 0, y: 0 })
   const [c, setC] = useState<Point>({ x: 0, y: 0 })
 
@@ -12,29 +12,30 @@ export const Controls = () => {
   //   navigator.vibrate(20)
   // }
 
+  const centerPoint: Point = useMemo(() => {
+    const wheel = document.getElementById('clickwheel')
+    const rect = wheel?.getBoundingClientRect()
+
+    if (!rect) return { x: 0, y: 0 }
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    }
+  }, [])
+
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isMouseDown) return
 
-    setA(b)
-    setB(c)
-    setC({ x: event.clientX, y: event.clientY })
-
-    const dir = calculateDirection(a, b, c)
-    console.log(event.clientX, event.clientY, dir, a, b, c)
-    setDirection(dir)
-  }
-
-  const calculateDirection = (a: Point, b: Point, c: Point) => {
-    const u: Point = { x: b.x - a.x, y: b.y - a.y }
-    const v: Point = { x: c.x - b.x, y: c.y - b.y }
-
-    const uv = u.x * v.y - u.y * v.x
-
-    if (uv <= 0) {
-      return Directions.FORWARD
-    } else {
-      return Directions.BACKWARD
+    const result = Math.atan(
+      (event.clientX - centerPoint.x) / (event.clientY - centerPoint.y)
+    )
+    console.log(result)
+    if (result < a) {
+      setDirection(Directions.FORWARD)
+    } else if (result > a) {
+      setDirection(Directions.BACKWARD)
     }
+    setA(result)
   }
 
   return (
@@ -43,8 +44,11 @@ export const Controls = () => {
       <div
         onMouseDown={() => setIsMouseDown(true)}
         onMouseUp={() => setIsMouseDown(false)}
+        onTouchStart={() => setIsMouseDown(true)}
+        onTouchEnd={() => setIsMouseDown(false)}
         onMouseMove={handleMouseMove}
         className='w-[300px] aspect-square bg-white rounded-full mx-auto my-auto flex'
+        id='clickwheel'
       >
         <button
           className='w-[125px] aspect-square border border-gray-500 rounded-full mx-auto my-auto'
