@@ -12,10 +12,11 @@ export const useMenu = create<Menu>(set => ({
   length: 5,
   incrementFocusedIndex: () =>
     set((state: Menu) => ({
-      focusedIndex: Math.min(state.length, state.focusedIndex + 1)
+      focusedIndex: Math.min(state.length - 1, state.focusedIndex + 1)
     })),
   decrementFocusedIndex: () =>
     set((state: Menu) => ({
       focusedIndex: Math.max(0, state.focusedIndex - 1)
-    }))
+    })),
+  setLenght: (length: number) => set(() => ({ length: length }))
 }))

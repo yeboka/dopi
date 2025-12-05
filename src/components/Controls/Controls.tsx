@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { throttle } from 'lodash'
 import { useMenu } from '@/store/menuStore'
+import NextIcon from '@/assets/icons/next.svg?react'
+import PreviousIcon from '@/assets/icons/previous.svg?react'
+import PlayIcon from '@/assets/icons/play.svg?react'
+import PauseIcon from '@/assets/icons/pause.svg?react'
 
 export type Point = { x: number; y: number }
 const calculateTheta = (
@@ -9,6 +13,10 @@ const calculateTheta = (
   centerPoint: Point
 ): number => {
   return Math.atan2(clientX - centerPoint.x, -(clientY - centerPoint.y))
+}
+
+const uxFeedBack = () => {
+  navigator.vibrate(10)
 }
 
 export const Controls = () => {
@@ -80,12 +88,14 @@ export const Controls = () => {
         } else {
           decrementFocusedIndex()
         }
+        uxFeedBack()
       }
       prevThetaRef.current = thetaCurrent
     },
-    [isMouseDown, centerPoint]
+    [isMouseDown, centerPoint, incrementFocusedIndex, decrementFocusedIndex]
   )
 
+  // eslint-disable-next-line react-hooks/refs
   const throttledMove = useMemo(() => throttle(handleMove, 50), [handleMove])
 
   useEffect(() => {
@@ -103,10 +113,23 @@ export const Controls = () => {
         onTouchEnd={handleEnd}
         onMouseMove={throttledMove}
         onTouchMove={throttledMove}
-        className='w-[300px] aspect-square bg-white rounded-full mx-auto my-auto flex'
+        className='w-[250px] aspect-square bg-white rounded-full mx-auto my-auto flex relative p-5 text-red-500'
         id='clickwheel'
       >
-        <button className='w-[125px] aspect-square border border-gray-500 rounded-full mx-auto my-auto'></button>
+        <button className='absolute left-[50%] -translate-x-[50%] font-semibold'>MENU</button>
+        <button className='absolute top-[50%] right-5 -translate-y-[50%]'>
+          <NextIcon />
+        </button>
+        <button className='absolute top-[50%] -translate-y-[50%]'>
+          <PreviousIcon />
+        </button>
+        <button className='absolute bottom-5 left-[50%] -translate-x-[50%]'>        
+          {false ? < PlayIcon /> : <PauseIcon />}
+        </button>
+        <button
+          className='w-[100px] aspect-square border border-gray-500 rounded-full mx-auto my-auto'
+          onClick={() => {}}
+        ></button>
       </div>
     </div>
   )

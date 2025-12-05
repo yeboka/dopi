@@ -18,7 +18,7 @@ export const Screen = () => {
         <div className='w-full h-full bg-gray-200 flex flex-col'>
           <ul>
             {items.map((item, i) => (
-              <button
+              <li
                 key={item.id}
                 className={cn(
                   'p-4 border-b border-gray-300 focus:bg-blue-400 w-full text-left',
@@ -27,7 +27,7 @@ export const Screen = () => {
                 data-menu-item
               >
                 {item.name}
-              </button>
+              </li>
             ))}
           </ul>
         </div>
