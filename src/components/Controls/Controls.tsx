@@ -81,7 +81,7 @@ export const Controls = () => {
         deltaTheta += 2 * Math.PI
       }
 
-      if (Math.abs(deltaTheta) > 0.01) {
+      if (Math.abs(deltaTheta) > 0.04) {
         const isClockwise = deltaTheta > 0
         if (isClockwise) {
           incrementFocusedIndex()

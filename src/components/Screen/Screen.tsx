@@ -16,13 +16,16 @@ export const Screen = () => {
     <div className='flex-1'>
       <div className='w-full aspect-square mx-auto p-2 bg-white border-white rounded-[10px]'>
         <div className='w-full h-full bg-gray-200 flex flex-col'>
+          <div className={'flex items-center justify-between px-4 py-1 text-white font-bold bg-linear-to-b from-[#8C8C8C80] from-5% via-[#C8C8C8] via-15% to-[#8C8C8C] to-100%'}>
+            <h1>dopi</h1>
+          </div>
           <ul>
             {items.map((item, i) => (
               <li
                 key={item.id}
                 className={cn(
-                  'p-4 border-b border-gray-300 focus:bg-blue-400 w-full text-left',
-                  focusedIndex === i && 'bg-blue-400'
+                  'px-4 py-1  w-full text-left',
+                  focusedIndex === i && 'bg-linear-to-b from-[#4D39FF80] from-5% via-[#A99FFF] via-15% to-[#4D39FFC9] to-100% text-white'
                 )}
                 data-menu-item
               >
