@@ -7,41 +7,29 @@ import PlayIcon from '@/assets/icons/play.svg?react'
 import PauseIcon from '@/assets/icons/pause.svg?react'
 
 export type Point = { x: number; y: number }
+let centerElPoint: Point | null = null
+
 const calculateTheta = (
   clientX: number,
   clientY: number,
-  centerPoint: Point
 ): number => {
-  return Math.atan2(-(clientX - centerPoint.x), clientY - centerPoint.y)
+  if (!centerElPoint) return 0
+  const theta = Math.atan2(-(clientY - centerElPoint.y), -(clientX - centerElPoint.x))
+  return theta
 }
 
 const uxFeedBack = () => {
   navigator.vibrate(10)
 }
 
+
 export const Controls = () => {
   const [isMouseDown, setIsMouseDown] = useState(false)
   const { incrementFocusedIndex, decrementFocusedIndex } = useMenu()
   const startThetaRef = useRef<number | null>(null)
-  const prevThetaRef = useRef(0)
-
-  const centerPoint: Point = useMemo(() => {
-    const wheel = document.getElementById('clickwheel')
-    const rect = wheel?.getBoundingClientRect()
-
-    if (!rect) return { x: 0, y: 0 }
-    return {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2
-    }
-  }, [])
+  const prevThetaRef = useRef(-2.0331651641142265)
+  const cPointRef = useRef<HTMLButtonElement | null>(null)
   
-  let p1 = {x: 2, y: 1}
-  let p2 = {x: 1, y: 2}
-  let deltaP = {x: p2.x - p1.x, y: p2.y - p1.y}
-  console.log(Math.atan2(deltaP.y, deltaP.x));
-  
-
   const handleStart = useCallback(
     (
       event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
@@ -53,13 +41,13 @@ export const Controls = () => {
       const clientY =
         'touches' in event ? event.touches[0].clientY : event.clientY
 
-      const thetaCurrent = calculateTheta(clientX, clientY, centerPoint)
+      const thetaCurrent = calculateTheta(clientX, clientY)
 
       startThetaRef.current = thetaCurrent
       prevThetaRef.current = thetaCurrent
     },
-    [centerPoint]
-  )
+    []
+  )  
 
   const handleEnd = useCallback(() => {
     setIsMouseDown(false)
@@ -77,7 +65,7 @@ export const Controls = () => {
       const clientY =
         'touches' in event ? event.touches[0].clientY : event.clientY
 
-      const thetaCurrent = calculateTheta(clientX, clientY, centerPoint)
+      const thetaCurrent = calculateTheta(clientX, clientY)
       const prevTheta = prevThetaRef.current
       let deltaTheta = thetaCurrent - prevTheta
 
@@ -98,17 +86,27 @@ export const Controls = () => {
       }
       prevThetaRef.current = thetaCurrent
     },
-    [isMouseDown, centerPoint, incrementFocusedIndex, decrementFocusedIndex]
+    [isMouseDown, incrementFocusedIndex, decrementFocusedIndex]
   )
 
-  // eslint-disable-next-line react-hooks/refs
-  const throttledMove = useMemo(() => throttle(handleMove, 50), [handleMove])
+  const throttledMove = useMemo(() => throttle(handleMove, 100), [handleMove])
 
   useEffect(() => {
     return () => {
       throttledMove.cancel()
     }
   }, [throttledMove])
+
+  if (!centerElPoint) {
+    const rect = cPointRef.current?.getBoundingClientRect()
+    if (rect) {
+       // eslint-disable-next-line react-hooks/globals
+       centerElPoint = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      }
+    }
+  }
 
   return (
     <div className='flex-1 flex flex-col items-center'>
@@ -133,8 +131,15 @@ export const Controls = () => {
           {false ? < PlayIcon /> : <PauseIcon />}
         </button>
         <button
+          ref={cPointRef}
           className='w-[100px] aspect-square border border-gray-500 rounded-full mx-auto my-auto'
           onClick={() => {}}
+          onMouseDown={(e) => e.stopPropagation()}
+          onMouseUp={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          onMouseMove={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
         ></button>
       </div>
     </div>
