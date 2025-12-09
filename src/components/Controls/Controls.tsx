@@ -12,7 +12,7 @@ const calculateTheta = (
   clientY: number,
   centerPoint: Point
 ): number => {
-  return Math.atan2(clientX - centerPoint.x, -(clientY - centerPoint.y))
+  return Math.atan2(-(clientX - centerPoint.x), clientY - centerPoint.y)
 }
 
 const uxFeedBack = () => {
@@ -35,6 +35,12 @@ export const Controls = () => {
       y: rect.top + rect.height / 2
     }
   }, [])
+  
+  let p1 = {x: 2, y: 1}
+  let p2 = {x: 1, y: 2}
+  let deltaP = {x: p2.x - p1.x, y: p2.y - p1.y}
+  console.log(Math.atan2(deltaP.y, deltaP.x));
+  
 
   const handleStart = useCallback(
     (
