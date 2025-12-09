@@ -14,7 +14,7 @@ export const Screen = () => {
 
   return (
     <div className='flex-1'>
-      <div className='w-full aspect-square mx-auto p-2 bg-white border-white rounded-[10px]'>
+      <div className='w-full aspect-square mx-auto p-2 bg-gray-600 rounded-[10px]'>
         <div className='w-full h-full bg-gray-200 flex flex-col'>
           <div className={'flex items-center justify-between px-4 py-1 text-white font-bold bg-linear-to-b from-[#8C8C8C80] from-5% via-[#C8C8C8] via-15% to-[#8C8C8C] to-100%'}>
             <h1>dopi</h1>
