@@ -5,7 +5,7 @@ import { Screen } from './components/Screen'
 
 function App() {
   return (
-    <div className='min-h-screen flex'>
+    <div className='min-h-screen flex overflow-hidden'>
       <Container>
         <Screen />
         <Controls />
