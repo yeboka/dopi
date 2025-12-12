@@ -58,9 +58,9 @@ export const useMenu = create<Menu>(set => ({
   },
   goBack: () => {
     set(state => {
-      console.log('goBack', state.stack)
       if (state.stack.length <= 1) return state
-      const newStack = state.stack.slice(0, -1)
+      const newStack = [...state.stack]
+      newStack.pop()
       return {
         stack: newStack,
         selectedIndex: 0

@@ -31,11 +31,13 @@ const uxFeedBack = () => {
 export const Controls = () => {
   const [isMouseDown, setIsMouseDown] = useState(false)
   const { scroll, select, goBack } = useMenu()
+
   const startThetaRef = useRef<number | null>(null)
   const prevThetaRef = useRef(-2.0331651641142265)
   const midButtonRef = useRef<HTMLButtonElement | null>(null)
   const clickWheelRef = useRef<HTMLDivElement | null>(null)
   const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const isScrollingRef = useRef<boolean>(false)
 
   const handleStart = useCallback((event: UnifiedEvent) => {
     event.preventDefault()
@@ -50,17 +52,29 @@ export const Controls = () => {
 
     startThetaRef.current = thetaCurrent
     prevThetaRef.current = thetaCurrent
+    isScrollingRef.current = false
   }, [])
 
-  const handleEnd = useCallback((event: UnifiedEvent) => {
-    event.preventDefault()
-    setIsMouseDown(false)
-    startThetaRef.current = null
-  }, [])
+  const handleEnd = useCallback(
+    (event: UnifiedEvent) => {
+      setIsMouseDown(false)
+      startThetaRef.current = null
+
+      if (!isScrollingRef.current) {
+        const target = event.target
+        if (
+          menuButtonRef.current &&
+          menuButtonRef.current.contains(target as Node)
+        ) {
+          goBack()
+        }
+      }
+    },
+    [goBack]
+  )
 
   const handleRotate = useCallback(
     (event: UnifiedEvent) => {
-      event.preventDefault()
       if (!isMouseDown || startThetaRef.current === null) return
 
       const clientX =
@@ -81,6 +95,8 @@ export const Controls = () => {
       if (Math.abs(deltaTheta) > 0.04) {
         const isClockwise = deltaTheta > 0
         scroll(isClockwise ? Directions.FORWARD : Directions.BACKWARD)
+        uxFeedBack()
+        isScrollingRef.current = true
       }
       prevThetaRef.current = thetaCurrent
     },
@@ -98,6 +114,35 @@ export const Controls = () => {
   )
 
   useEffect(() => {
+    const addListenersToEvent = (
+      element: HTMLElement | null,
+      fn: () => void
+    ) => {
+      if (!element) return
+
+      const stopPropagation = (event: UnifiedEvent) => {
+        event.stopPropagation()
+      }
+
+      element.addEventListener('touchstart', stopPropagation)
+      element.addEventListener('touchend', stopPropagation)
+      element.addEventListener('touchmove', stopPropagation)
+      element.addEventListener('mousemove', stopPropagation)
+      element.addEventListener('mouseup', stopPropagation)
+      element.addEventListener('mousedown', stopPropagation)
+      element.addEventListener('click', fn)
+
+      return () => {
+        element.removeEventListener('touchstart', stopPropagation)
+        element.removeEventListener('touchend', stopPropagation)
+        element.removeEventListener('touchmove', stopPropagation)
+        element.removeEventListener('mousemove', stopPropagation)
+        element.removeEventListener('mouseup', stopPropagation)
+        element.removeEventListener('mousedown', stopPropagation)
+        element.removeEventListener('click', fn)
+      }
+    }
+
     const clickWheel = clickWheelRef.current
     if (clickWheel) {
       clickWheel.addEventListener('touchstart', handleStart, { passive: false })
@@ -107,27 +152,10 @@ export const Controls = () => {
       })
     }
 
-    const midButton = midButtonRef.current
-    if (midButton) {
-      midButton.addEventListener('touchstart', e => e.stopPropagation())
-      midButton.addEventListener('touchend', e => e.stopPropagation())
-      midButton.addEventListener('touchmove', e => e.stopPropagation())
-      midButton.addEventListener('mousemove', e => e.stopPropagation())
-      midButton.addEventListener('mouseup', e => e.stopPropagation())
-      midButton.addEventListener('mousedown', e => e.stopPropagation())
-      midButton.addEventListener('click', handleSelect)
-    }
-
-    const menuButton = menuButtonRef.current
-    if (menuButton) {
-      menuButton.addEventListener('touchstart', e => e.stopPropagation())
-      menuButton.addEventListener('touchend', e => e.stopPropagation())
-      menuButton.addEventListener('touchmove', e => e.stopPropagation())
-      menuButton.addEventListener('mousemove', e => e.stopPropagation())
-      menuButton.addEventListener('mouseup', e => e.stopPropagation())
-      menuButton.addEventListener('mousedown', e => e.stopPropagation())
-      menuButton.addEventListener('click', goBack)
-    }
+    const cleanUpListeners = addListenersToEvent(
+      midButtonRef.current,
+      handleSelect
+    )
 
     return () => {
       if (clickWheel) {
@@ -135,24 +163,8 @@ export const Controls = () => {
         clickWheel.removeEventListener('touchend', handleEnd)
         clickWheel.removeEventListener('touchmove', throttledMove)
       }
-      if (midButton) {
-        midButton.removeEventListener('touchstart', e => e.stopPropagation())
-        midButton.removeEventListener('touchend', e => e.stopPropagation())
-        midButton.removeEventListener('touchmove', e => e.stopPropagation())
-        midButton.removeEventListener('mousemove', e => e.stopPropagation())
-        midButton.removeEventListener('mouseup', e => e.stopPropagation())
-        midButton.removeEventListener('mousedown', e => e.stopPropagation())
-        midButton.removeEventListener('click', handleSelect)
-      }
-      if (menuButton) {
-        menuButton.removeEventListener('touchstart', e => e.stopPropagation())
-        menuButton.removeEventListener('touchend', e => e.stopPropagation())
-        menuButton.removeEventListener('touchmove', e => e.stopPropagation())
-        menuButton.removeEventListener('mousemove', e => e.stopPropagation())
-        menuButton.removeEventListener('mouseup', e => e.stopPropagation())
-        menuButton.removeEventListener('mousedown', e => e.stopPropagation())
-        menuButton.removeEventListener('click', goBack)
-      }
+      cleanUpListeners?.()
+
       throttledMove.cancel()
     }
   }, [handleStart, handleEnd, throttledMove, handleSelect, goBack])
@@ -175,7 +187,7 @@ export const Controls = () => {
         onMouseDown={handleStart}
         onMouseUp={handleEnd}
         onMouseMove={throttledMove}
-        className='w-[250px] aspect-square bg-white rounded-full mx-auto my-auto flex relative p-5 text-red-500'
+        className='w-[250px] aspect-square bg-white rounded-full mx-auto my-auto flex relative p-5 text-gray-500'
         id='clickwheel'
       >
         <button
@@ -196,13 +208,7 @@ export const Controls = () => {
         </button>
         <button
           ref={midButtonRef}
-          className='w-[100px] aspect-square z-10 border bg-red-300 border-gray-500 rounded-full mx-auto my-auto'
-          onMouseDown={e => e.stopPropagation()}
-          onMouseUp={e => e.stopPropagation()}
-          onTouchStart={e => e.stopPropagation()}
-          onTouchEnd={e => e.stopPropagation()}
-          onMouseMove={e => e.stopPropagation()}
-          onTouchMove={e => e.stopPropagation()}
+          className='w-[100px] aspect-square z-10 border border-gray-500 rounded-full mx-auto my-auto'
         ></button>
       </div>
     </div>
