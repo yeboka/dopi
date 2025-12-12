@@ -1,22 +1,70 @@
+import { getCurrentNode } from '@/lib/utils'
+import { Directions } from '@/shared/constants'
 import { create } from 'zustand'
-
 export interface Menu {
-  focusedIndex: number
-  length: number
-  incrementFocusedIndex: () => void
-  decrementFocusedIndex: () => void
+  stack: string[]
+  selectedIndex: number
+  scroll: (direction: Directions, type?: 'clamp' | 'loop') => void
+  select: () => void
+  goBack: () => void
 }
 
 export const useMenu = create<Menu>(set => ({
-  focusedIndex: 0,
-  length: 5,
-  incrementFocusedIndex: () =>
-    set((state: Menu) => ({
-      focusedIndex: Math.min(state.length - 1, state.focusedIndex + 1)
-    })),
-  decrementFocusedIndex: () =>
-    set((state: Menu) => ({
-      focusedIndex: Math.max(0, state.focusedIndex - 1)
-    })),
-  setLenght: (length: number) => set(() => ({ length: length }))
+  stack: ['root'],
+  selectedIndex: 0,
+  scroll: (direction, type = 'clamp') => {
+    set(state => {
+      const oldIndex = state.selectedIndex
+      const currentNode = getCurrentNode(state.stack)
+
+      if (currentNode.type === 'component') return state
+
+      const MAX_INDEX = currentNode.children?.length
+        ? currentNode.children.length - 1
+        : 0
+      const MIN_INDEX = 0
+      if (type === 'clamp') {
+        const newIndex = oldIndex + (direction === Directions.FORWARD ? 1 : -1)
+        return {
+          selectedIndex: Math.max(Math.min(newIndex, MAX_INDEX), MIN_INDEX)
+        }
+      } else {
+        const newIndex = oldIndex + (direction === Directions.FORWARD ? 1 : -1)
+        return {
+          selectedIndex: newIndex < 0 ? MIN_INDEX : newIndex % MAX_INDEX
+        }
+      }
+    })
+  },
+  select: () => {
+    set(state => {
+      const currentNode = getCurrentNode(state.stack)
+      if (currentNode.type === 'component') return state
+      if (currentNode.type === 'menu') {
+        const id = currentNode.children?.[state.selectedIndex]?.id
+        if (!id) return state
+        const newStack = [...state.stack, id]
+        return {
+          stack: newStack,
+          selectedIndex: 0
+        }
+      }
+      if (currentNode.type === 'list') {
+        console.log(currentNode.action)
+        return state
+      }
+      return state
+    })
+  },
+  goBack: () => {
+    set(state => {
+      console.log('goBack', state.stack)
+      if (state.stack.length <= 1) return state
+      const newStack = state.stack.slice(0, -1)
+      return {
+        stack: newStack,
+        selectedIndex: 0
+      }
+    })
+  }
 }))
